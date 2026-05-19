@@ -7,22 +7,30 @@ import requests
 import pandas as pd
 import os
 
-# ================= 1. 核心配置区（🌟 安全升级版） =================
-# 我们不再把密码写死在代码里，而是让程序去云端的“保险箱”里拿！
-try:
-    MY_API_KEY = st.secrets["DEEPSEEK_KEY"]
-    GAODE_KEY = st.secrets["GAODE_KEY"]
-except:
-    st.error("⚠️ 找不到 API Key！如果你在本地运行，请检查配置；如果在云端，请配置 Secrets。")
-    st.stop() # 找不到密码就停止运行
+# ================= 0. 🌟 界面美化魔法 (CSS 注入) =================
+st.set_page_config(page_title="智能外卖助手", page_icon="🍜", layout="centered")
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            /* 给侧边栏加一点轻微的阴影和圆角 */
+            [data-testid="stSidebar"] {
+                box-shadow: 2px 0px 10px rgba(0,0,0,0.1);
+            }
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
+# ================= 1. 核心配置区 =================
+MY_API_KEY = "sk-23d6e3d67dc54c249b6358146df3153d"  
+GAODE_KEY = "135c5aa03da53945b029b29d7d06eca9"  
 
 client = OpenAI(api_key=MY_API_KEY, base_url="https://api.deepseek.com")
 
-# ... 下面的代码完全不用动！...
-
 # ================= 2. 真实高德定位系统 =================
 def get_location_by_address(address, shops_data):
-    if not GAODE_KEY or GAODE_KEY == "你的高德KEY填在这里":
+    if not GAODE_KEY:
         if shops_data and len(shops_data) > 0:
             st.toast("⚠️ 未配置高德Key，使用表格第一家店附近作为模拟位置。")
             return shops_data[0]["纬度"] + 0.005, shops_data[0]["经度"] + 0.005
@@ -61,7 +69,7 @@ def load_shops_data():
         df = df.fillna("") 
         return df.to_dict('records')
     else:
-        # 🌟 微调：保底数据里去掉了离谱的单品价格，加上了“评分”字段
+        # 保底数据
         return [
             {"店名": "张小生麻辣烫", "评分": 4.8, "价格": 25, "标签": "重口味,加香菜", "纬度": 39.9050, "经度": 116.4080, "菜单": "招牌麻辣烫, 炸肉丸, 冰红茶"},
             {"店名": "沙县小吃", "评分": 3.9, "价格": 15, "标签": "清淡,鸭腿饭", "纬度": 39.9160, "经度": 116.4010, "菜单": "鸭腿饭, 飘香拌面, 乌鸡汤"},
@@ -78,7 +86,7 @@ st.title("🍜 越用越懂你的外卖助手")
 
 with st.sidebar:
     st.header("📍 你的位置")
-    user_address = st.text_input("请输入详细地址（建议带上城市，如：广州市XX大学）：", value="北京市天安门")
+    user_address = st.text_input("请输入详细地址（建议带上城市，如：广州市XX大学）：", value="北京市海淀区北京科技大学")
     
     user_lat, user_lon = get_location_by_address(user_address, ALL_SHOPS)
     
@@ -86,7 +94,7 @@ with st.sidebar:
         st.success("✅ 高德地图已连接")
     st.caption(f"🌍 当前解析坐标：纬度 {user_lat:.4f}, 经度 {user_lon:.4f}")
     
-    max_distance = st.slider("最远能接受多远的店？(公里)", min_value=0.5, max_value=10.0, value=3.0, step=0.5)
+    max_distance = st.slider("最远能接受多远的店？(公里)", min_value=0.5, max_value=3.0, value=1.5, step=0.5)
     
     st.divider()
     st.header("👤 你的吃货画像")
@@ -100,7 +108,7 @@ for shop in ALL_SHOPS:
     if dist <= max_distance:
         time_est = estimate_time(dist)
         menu_info = shop.get("菜单", "暂无详细菜单") 
-        # 🌟 微调：安全获取评分，并拼接到文本里
+        # 🌟 微调：获取评分，并拼接到文本里
         rating_info = shop.get("评分", "暂无评分")
         available_shops_text += f"- 【{shop['店名']}】: 评分{rating_info}，人均{shop['价格']}元。标签：{shop['标签']}。距离：{dist}公里，预计配送：{time_est}分钟。菜单：{menu_info}\n"
 
