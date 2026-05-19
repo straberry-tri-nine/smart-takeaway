@@ -13,7 +13,6 @@ hide_st_style = """
             <style>
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
-            header {visibility: hidden;}
             /* 给侧边栏加一点轻微的阴影和圆角 */
             [data-testid="stSidebar"] {
                 box-shadow: 2px 0px 10px rgba(0,0,0,0.1);
