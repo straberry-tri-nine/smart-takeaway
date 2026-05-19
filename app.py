@@ -22,9 +22,14 @@ hide_st_style = """
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
-# ================= 1. 核心配置区 =================
-MY_API_KEY = "sk-23d6e3d67dc54c249b6358146df3153d"  
-GAODE_KEY = "135c5aa03da53945b029b29d7d06eca9"  
+# ================= 1. 核心配置区（🌟 安全升级版） =================
+# 我们不再把密码写死在代码里，而是让程序去云端的“保险箱”里拿！
+try:
+    MY_API_KEY = st.secrets["DEEPSEEK_KEY"]
+    GAODE_KEY = st.secrets["GAODE_KEY"]
+except:
+    st.error("⚠️ 找不到 API Key！如果你在本地运行，请检查配置；如果在云端，请配置 Secrets。")
+    st.stop() # 找不到密码就停止运行
 
 client = OpenAI(api_key=MY_API_KEY, base_url="https://api.deepseek.com")
 
