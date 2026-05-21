@@ -16,14 +16,17 @@ if 'page_state' not in st.session_state:
 
 # 🌟 修复图片路径问题的神器：获取当前代码所在的绝对路径
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-
 def get_base64_image(file_name):
+    # 拼接绝对路径
+    file_path = os.path.join(CURRENT_DIR, file_name)
     try:
-        # 拼接绝对路径，确保 100% 能找到图片
-        file_path = os.path.join(CURRENT_DIR, file_name)
         with open(file_path, 'rb') as f:
             return base64.b64encode(f.read()).decode()
     except Exception as e:
+        # 如果失败了，在网页上把真实的路径和错误原因打印出来！
+        st.error(f"🚨 找不到图片！")
+        st.warning(f"程序正在尝试寻找的路径是：{file_path}")
+        st.info(f"具体的错误原因是：{e}")
         return None
 
 # 加载两张图片
