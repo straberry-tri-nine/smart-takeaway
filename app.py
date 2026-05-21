@@ -6,16 +6,28 @@ import math
 import requests
 import pandas as pd
 import os
-# ================= 0. 🌟 终极 UI 美化魔法 =================
+# ================= 0. 🌟 终极 UI 美化魔法 (元气美食主题) =================
 st.set_page_config(page_title="智能外卖助手", page_icon="🍱", layout="centered")
+
 # 注入高级 CSS 样式
 custom_css = """
 <style>
-    /* 隐藏原厂水印 */
+    /* 1. 隐藏原厂水印 */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* 苹果风渐变色大标题 */
+    /* 2. 更改整个网页的背景色（温馨的蜜桃暖色渐变，激发食欲！） */
+    .stApp {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+    }
+    
+    /* 3. 侧边栏背景色改为纯白，增加高级阴影 */
+    [data-testid="stSidebar"] {
+        background-color: #ffffff;
+        box-shadow: 5px 0px 15px rgba(255, 75, 75, 0.1);
+    }
+
+    /* 4. 苹果风渐变色大标题 */
     .gradient-title {
         background: -webkit-linear-gradient(45deg, #FF4B4B, #FF904B);
         -webkit-background-clip: text;
@@ -27,9 +39,33 @@ custom_css = """
     }
     .subtitle {
         text-align: center;
-        color: #888;
+        color: #ff7b7b;
         font-size: 1.2em;
         margin-bottom: 30px;
+        font-weight: bold;
+    }
+
+    /* 5. 美化数据卡片 (Metric) - 变身高级的“毛玻璃卡片” */
+    [data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0.7);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 8px 20px rgba(255, 75, 75, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    /* 鼠标悬浮在卡片上时会有微微弹起的动画 */
+    [data-testid="stMetric"]:hover {
+        transform: translateY(-5px);
+    }
+    
+    /* 6. 美化聊天输入框，让它看起来更圆润可爱 */
+    [data-testid="stChatInput"] {
+        border-radius: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid #ffe3e3;
     }
 </style>
 """
