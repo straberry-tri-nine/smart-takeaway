@@ -6,20 +6,34 @@ import math
 import requests
 import pandas as pd
 import os
-
-# ================= 0. 🌟 界面美化魔法 (CSS 注入) =================
-st.set_page_config(page_title="智能外卖助手", page_icon="🍜", layout="centered")
-hide_st_style = """
-            <style>
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            /* 给侧边栏加一点轻微的阴影和圆角 */
-            [data-testid="stSidebar"] {
-                box-shadow: 2px 0px 10px rgba(0,0,0,0.1);
-            }
-            </style>
-            """
-st.markdown(hide_st_style, unsafe_allow_html=True)
+# ================= 0. 🌟 终极 UI 美化魔法 =================
+st.set_page_config(page_title="智能外卖助手", page_icon="🍱", layout="centered")
+# 注入高级 CSS 样式
+custom_css = """
+<style>
+    /* 隐藏原厂水印 */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    /* 苹果风渐变色大标题 */
+    .gradient-title {
+        background: -webkit-linear-gradient(45deg, #FF4B4B, #FF904B);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3.5em;
+        font-weight: 900;
+        text-align: center;
+        margin-bottom: 0px;
+    }
+    .subtitle {
+        text-align: center;
+        color: #888;
+        font-size: 1.2em;
+        margin-bottom: 30px;
+    }
+</style>
+"""
+st.markdown(custom_css, unsafe_allow_html=True)
 
 # ================= 1. 核心配置区（🌟 安全升级版） =================
 # 我们不再把密码写死在代码里，而是让程序去云端的“保险箱”里拿！
@@ -81,29 +95,39 @@ def load_shops_data():
         ]
 
 ALL_SHOPS = load_shops_data()
-
-# ================= 4. 界面与小账本 =================
+# ================= 4. 🌟 全新排版：界面与小账本 =================
 if 'user_profile' not in st.session_state:
     st.session_state.user_profile = {"spice_preference": "未知", "dislikes": [], "favorites": []}
 
-st.title("🍜 越用越懂你的外卖助手")
+# --- 主页头部：炫酷标题 ---
+st.markdown('<div class="gradient-title">智能外卖助手</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">✨ 越用越懂你的 AI 饭搭子 ✨</div>', unsafe_allow_html=True)
 
+# --- 主页 C 位：吃货画像数据看板 ---
+# 我们用 st.columns 把屏幕分成两半，用 st.metric 做成高级的数据卡片！
+st.write("### 👤 你的专属吃货画像")
+col1, col2 = st.columns(2)
+with col1:
+    st.metric(label="🌶️ 辣度偏好", value=st.session_state.user_profile['spice_preference'])
+with col2:
+    dislikes_str = ', '.join(st.session_state.user_profile['dislikes']) if st.session_state.user_profile['dislikes'] else '无'
+    st.metric(label="🚫 坚决不吃", value=dislikes_str)
+st.divider()
+
+# --- 侧边栏：降级为设置中心 ---
 with st.sidebar:
-    st.header("📍 你的位置")
-    user_address = st.text_input("请输入详细地址（建议带上城市，如：广州市XX大学）：", value="北京市海淀区北京科技大学")
+    # 加一个可爱的随机机器人头像
+    st.image("https://api.dicebear.com/7.x/bottts/svg?seed=Felix&backgroundColor=FF4B4B", width=150)
+    st.header("⚙️ 点餐设置")
     
+    user_address = st.text_input("📍 你的位置：", value="北京市天安门", help="建议带上城市名，定位更准哦！")
     user_lat, user_lon = get_location_by_address(user_address, ALL_SHOPS)
     
     if GAODE_KEY != "你的高德KEY填在这里":
         st.success("✅ 高德地图已连接")
-    st.caption(f"🌍 当前解析坐标：纬度 {user_lat:.4f}, 经度 {user_lon:.4f}")
+    st.caption(f"🌍 坐标：{user_lat:.4f}, {user_lon:.4f}")
     
-    max_distance = st.slider("最远能接受多远的店？(公里)", min_value=0.5, max_value=3.0, value=1.5, step=0.5)
-    
-    st.divider()
-    st.header("👤 你的吃货画像")
-    st.write(f"🌶️ 辣度接受：{st.session_state.user_profile['spice_preference']}")
-    st.write(f"🚫 坚决不吃：{', '.join(st.session_state.user_profile['dislikes']) if st.session_state.user_profile['dislikes'] else '无'}")
+    max_distance = st.slider("🛵 最远配送距离 (公里)", min_value=0.5, max_value=10.0, value=3.0, step=0.5)
 
 # ================= 5. 智能漏斗：筛选真实商家 =================
 available_shops_text = ""
