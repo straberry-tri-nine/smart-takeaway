@@ -1,4 +1,3 @@
-  
 import streamlit as st
 from openai import OpenAI
 import json
@@ -16,30 +15,29 @@ if 'page_state' not in st.session_state:
 
 # 🌟 修复图片路径问题的神器：获取当前代码所在的绝对路径
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 def get_base64_image(file_name):
-    # 拼接绝对路径
-    file_path = os.path.join(CURRENT_DIR, file_name)
     try:
+        # 拼接绝对路径，确保 100% 能找到图片
+        file_path = os.path.join(CURRENT_DIR, file_name)
         with open(file_path, 'rb') as f:
             return base64.b64encode(f.read()).decode()
     except Exception as e:
-        # 如果失败了，在网页上把真实的路径和错误原因打印出来！
-        st.error(f"🚨 找不到图片！")
-        st.warning(f"程序正在尝试寻找的路径是：{file_path}")
-        st.info(f"具体的错误原因是：{e}")
         return None
 
 # 加载两张图片
 chef_base64 = get_base64_image("chef.jpg")
 bg_base64 = get_base64_image("bg.jpg")
-
 # ================= 1. 🎨 动态 CSS 魔法 =================
-# 基础 CSS（去灰边框、改字体）
+# 基础 CSS（去灰边框、改字体、美化卡片文字）
 base_css = """
 <style>
+    /* 🌟 引入超可爱的中文字体：站酷快乐体 */
+    @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
+
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;} /* 隐藏顶部自带的灰色装饰条 */
+    header {visibility: hidden;} 
     
     html, body, [class*="css"] {
         font-family: 'PingFang SC', 'Microsoft YaHei', 'Comic Sans MS', sans-serif;
@@ -54,7 +52,7 @@ base_css = """
 
     /* 聊天输入框去灰边，变可爱 */
     [data-testid="stChatInput"] {
-        border: 2px solid #87CEFA !important; /* 换成小八的蓝色 */
+        border: 2px solid #87CEFA !important; 
         border-radius: 20px !important;
         background-color: rgba(255, 255, 255, 0.9) !important;
     }
@@ -65,7 +63,7 @@ base_css = """
         border-radius: 20px;
         padding: 10px 20px;
         margin-bottom: 15px;
-        border: 2px dashed #87CEFA; /* 蓝色虚线 */
+        border: 2px dashed #87CEFA; 
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
 
@@ -74,9 +72,24 @@ base_css = """
         background: rgba(255, 255, 255, 0.9);
         border-radius: 20px;
         padding: 15px;
-        border: 3px solid #FFE4B5; /* 奶黄色边框 */
+        border: 3px solid #FFE4B5; 
         text-align: center;
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    
+    /* 🌟 新增：卡片里的小标题（如：🌶️ 辣度偏好） */
+    [data-testid="stMetricLabel"] * {
+        color: #FF9EBB !important; /* 樱花粉 */
+        font-size: 1.1em !important;
+        font-family: 'ZCOOL KuaiLe', 'Comic Sans MS', sans-serif !important;
+    }
+
+    /* 🌟 新增：卡片里的具体数值（如：未知、无） */
+    [data-testid="stMetricValue"] * {
+        color: #FF8C00 !important; /* 活力橘色，呼应炸鸡腿 */
+        font-size: 1.8em !important;
+        font-family: 'ZCOOL KuaiLe', 'Comic Sans MS', sans-serif !important;
+        text-shadow: 1px 1px 0px #FFF !important; /* 白色小描边，增加立体感 */
     }
     
     /* 展开框 (Expander) 去灰边 */
@@ -87,7 +100,6 @@ base_css = """
     }
 </style>
 """
-
 # 封面专属 CSS
 welcome_css = """
 <style>
@@ -252,13 +264,13 @@ with st.sidebar:
     st.image("https://api.dicebear.com/7.x/bottts/svg?seed=Mimi&backgroundColor=87CEFA", width=150)
     st.header("⚙️ 点餐设置")
     
-    user_address = st.text_input("📍 你的位置：", value="北京市天安门")
+    user_address = st.text_input("📍 你的位置：", value="北京市海淀区北京科技大学")
     user_lat, user_lon = get_location_by_address(user_address, ALL_SHOPS)
     
     if GAODE_KEY != "你的高德KEY填在这里":
         st.success("✅ 魔法雷达已开启")
     
-    max_distance = st.slider("🛵 最远配送距离 (公里)", min_value=0.5, max_value=3.0, value=1.5,step=0.5)
+    max_distance = st.slider("🛵 最远配送距离 (公里)", min_value=0.5, max_value=3.0, value=1.5, step=0.5)
 
 available_shops_text = ""
 for shop in ALL_SHOPS:
@@ -320,7 +332,7 @@ if user_input:
         ⚠️ 必须严格遵守以下设定：
         1. 【高分优先，宁缺毋滥】：精挑细选 最多 3 家 最符合要求的店。
         2. 【预算与点菜】：直接从菜单里挑出具体的菜品推荐给TA。
-        3. 【俏皮金句】：模仿吉伊卡哇中角色说话的语气，多用颜文字和可爱的语气词（如：捏、呀、哦）。
+        3. 【俏皮金句】：模仿吉伊卡哇中角色的说话语气，多用颜文字和可爱的语气词（如：捏、呀、哦）。
         4. 【贴心细节】：顺嘴提一句距离和大概多久送到。如果有忌口，记得邀功。
         """
 
