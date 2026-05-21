@@ -8,147 +8,175 @@ import pandas as pd
 import os
 import base64
 
-# ================= 0. 🎀 吉伊卡哇风格 UI 配置 =================
+# ================= 0. 🎀 页面基础配置 =================
 st.set_page_config(page_title="乌萨奇食堂", page_icon="🐰", layout="centered")
 
-# 初始化页面状态（控制是显示封面还是主程序）
 if 'page_state' not in st.session_state:
     st.session_state.page_state = "welcome"
 
-# 读取本地图片并转换为 Base64，方便在 CSS 和 HTML 中使用
-def get_base64_of_bin_file(bin_file):
+# 🌟 修复图片路径问题的神器：获取当前代码所在的绝对路径
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def get_base64_image(file_name):
     try:
-        with open(bin_file, 'rb') as f:
-            data = f.read()
-        return base64.b64encode(data).decode()
-    except:
-        return ""
+        # 拼接绝对路径，确保 100% 能找到图片
+        file_path = os.path.join(CURRENT_DIR, file_name)
+        with open(file_path, 'rb') as f:
+            return base64.b64encode(f.read()).decode()
+    except Exception as e:
+        return None
 
-# 尝试读取你保存的图片
-img_base64 = get_base64_of_bin_file("chef.jpg")
-img_html = f'<img src="data:image/jpeg;base64,{img_base64}" class="chef-img">' if img_base64 else '<div style="padding:50px; background:white; border-radius:50%;">图片未找到，请确保图片名为 chef.jpg</div>'
+# 加载两张图片
+chef_base64 = get_base64_image("chef.jpg")
+bg_base64 = get_base64_image("bg.jpg")
 
-custom_css = """
+# ================= 1. 🎨 动态 CSS 魔法 =================
+# 基础 CSS（去灰边框、改字体）
+base_css = """
 <style>
-    /* 隐藏原厂水印 */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    header {visibility: hidden;} /* 隐藏顶部自带的灰色装饰条 */
     
-    /* 全局字体：圆润感 */
     html, body, [class*="css"] {
         font-family: 'PingFang SC', 'Microsoft YaHei', 'Comic Sans MS', sans-serif;
     }
 
-    /* 背景：提取了图片中的奶黄色，渐变到淡淡的樱花粉 */
+    /* 去掉侧边栏的灰色边框，加上半透明毛玻璃效果 */
+    [data-testid="stSidebar"] {
+        background-color: rgba(255, 255, 255, 0.85) !important;
+        border-right: none !important; 
+        box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+    }
+
+    /* 聊天输入框去灰边，变可爱 */
+    [data-testid="stChatInput"] {
+        border: 2px solid #87CEFA !important; /* 换成小八的蓝色 */
+        border-radius: 20px !important;
+        background-color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    /* 聊天气泡美化 */
+    [data-testid="stChatMessage"] {
+        background-color: rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        padding: 10px 20px;
+        margin-bottom: 15px;
+        border: 2px dashed #87CEFA; /* 蓝色虚线 */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    /* 数据看板卡片美化 */
+    [data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        padding: 15px;
+        border: 3px solid #FFE4B5; /* 奶黄色边框 */
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    
+    /* 展开框 (Expander) 去灰边 */
+    [data-testid="stExpander"] {
+        border: 2px solid #FFE4B5 !important;
+        border-radius: 15px !important;
+        background: rgba(255, 255, 255, 0.8) !important;
+    }
+</style>
+"""
+
+# 封面专属 CSS
+welcome_css = """
+<style>
     .stApp {
         background: linear-gradient(180deg, #FFF6D9 0%, #FFF0F5 100%);
     }
-
-    /* ================= 封面专属样式 ================= */
     .welcome-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 80vh;
-        text-align: center;
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; height: 80vh; text-align: center;
     }
-    
     .chef-img {
-        width: 280px;
-        border-radius: 50%;
-        border: 6px solid #FFF;
+        width: 280px; border-radius: 50%; border: 6px solid #FFF;
         box-shadow: 0 8px 25px rgba(255, 180, 162, 0.4);
-        margin-bottom: 20px;
-        /* 添加可爱的上下浮动动画 */
-        animation: float 3s ease-in-out infinite;
+        margin-bottom: 20px; animation: float 3s ease-in-out infinite;
     }
-
     @keyframes float {
         0% { transform: translateY(0px); }
         50% { transform: translateY(-15px); }
         100% { transform: translateY(0px); }
     }
-
-    /* 可爱的按钮样式 */
     .stButton>button {
-        background-color: #FF85A1 !important;
-        color: white !important;
-        border-radius: 30px !important;
-        padding: 10px 30px !important;
-        border: 4px solid #FFF !important;
-        font-size: 1.2em !important;
-        font-weight: bold !important;
-        transition: all 0.3s !important;
-        box-shadow: 0 4px 15px rgba(255, 133, 161, 0.4) !important;
+        background-color: #FFB6C1 !important; color: white !important;
+        border-radius: 30px !important; padding: 10px 30px !important;
+        border: 4px solid #FFF !important; font-size: 1.2em !important;
+        font-weight: bold !important; transition: all 0.3s !important;
+        box-shadow: 0 4px 15px rgba(255, 182, 193, 0.5) !important;
     }
     .stButton>button:hover {
-        transform: scale(1.05) !important;
-        background-color: #FF5C8D !important;
-    }
-
-    /* ================= 主界面组件美化 ================= */
-    /* 数据看板美化：圆润的白底卡片 */
-    [data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.85);
-        border-radius: 25px;
-        padding: 15px;
-        border: 3px dashed #FFD1DC; /* 粉色虚线边框，超可爱 */
-        text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-    }
-    
-    /* 聊天气泡美化 */
-    [data-testid="stChatMessage"] {
-        background-color: rgba(255, 255, 255, 0.7);
-        border-radius: 20px;
-        padding: 10px 20px;
-        margin-bottom: 15px;
-        border: 2px solid #FFE4E1;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-    }
-
-    /* 标题样式 */
-    .cute-title {
-        text-align: center;
-        color: #FF7A9A;
-        font-size: 2.5em;
-        font-weight: 900;
-        margin-bottom: 5px;
-        text-shadow: 2px 2px 0px #FFF;
-    }
-    .cute-subtitle {
-        text-align: center;
-        color: #FFA07A;
-        font-size: 1.1em;
-        font-weight: bold;
-        margin-bottom: 30px;
+        transform: scale(1.05) !important; background-color: #FF69B4 !important;
     }
 </style>
 """
-st.markdown(custom_css, unsafe_allow_html=True)
 
-# ================= 1. 欢迎封面拦截逻辑 =================
+# 主页面专属 CSS (使用小八打饭背景图)
+main_css = f"""
+<style>
+    .stApp {{
+        background-image: url("data:image/jpeg;base64,{bg_base64}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }}
+    /* 为了防止背景图太花看不清字，给主内容区加一个半透明白色垫底 */
+    .block-container {{
+        background-color: rgba(255, 255, 255, 0.65);
+        border-radius: 30px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }}
+    .cute-title {{
+        text-align: center; color: #4682B4; /* 钢蓝色，呼应小八的帽子 */
+        font-size: 2.5em; font-weight: 900; margin-bottom: 5px;
+        text-shadow: 2px 2px 0px #FFF;
+    }}
+    .cute-subtitle {{
+        text-align: center; color: #FF8C00; /* 橘色，呼应炸鸡腿 */
+        font-size: 1.1em; font-weight: bold; margin-bottom: 30px;
+        text-shadow: 1px 1px 0px #FFF;
+    }}
+</style>
+"""
+
+# 根据当前状态注入不同的 CSS
+st.markdown(base_css, unsafe_allow_html=True)
+if st.session_state.page_state == "welcome":
+    st.markdown(welcome_css, unsafe_allow_html=True)
+else:
+    st.markdown(main_css, unsafe_allow_html=True)
+
+
+# ================= 2. 欢迎封面逻辑 =================
 if st.session_state.page_state == "welcome":
     st.markdown('<div class="welcome-container">', unsafe_allow_html=True)
     
-    # 显示浮动的厨师图片
-    st.markdown(img_html, unsafe_allow_html=True)
-    
+    if chef_base64:
+        st.markdown(f'<img src="data:image/jpeg;base64,{chef_base64}" class="chef-img">', unsafe_allow_html=True)
+    else:
+        st.error("找不到 chef.jpg，请检查图片是否在代码同目录下！")
+        
     st.markdown("<h1 style='color: #FF7A9A; font-size: 2.8em; text-shadow: 2px 2px 0px #FFF;'>今天也要好好吃饭哦！</h1>", unsafe_allow_html=True)
     st.markdown("<p style='color: #FF9EBB; font-size: 1.2em; font-weight: bold;'>我是你的专属 AI 饭搭子 ✨</p>", unsafe_allow_html=True)
+    st.write("") 
     
-    st.write("") # 占位空行
-    
-    # 点击按钮进入主界面
     if st.button("🍽️ 点我开始点餐！"):
         st.session_state.page_state = "main"
         st.rerun()
         
     st.markdown('</div>', unsafe_allow_html=True)
-    st.stop() # 拦截后续代码，直到状态改变
+    st.stop() 
 
-# ================= 2. 核心配置区 (以下为原业务逻辑) =================
+# ================= 3. 核心业务逻辑 (后端保持不变) =================
 try:
     MY_API_KEY = st.secrets["DEEPSEEK_KEY"]
     GAODE_KEY = st.secrets["GAODE_KEY"]
@@ -189,8 +217,8 @@ def estimate_time(distance_km):
 
 @st.cache_data 
 def load_shops_data():
-    if os.path.exists("shops.xlsx"):
-        df = pd.read_excel("shops.xlsx")
+    if os.path.exists(os.path.join(CURRENT_DIR, "shops.xlsx")):
+        df = pd.read_excel(os.path.join(CURRENT_DIR, "shops.xlsx"))
         df = df.fillna("") 
         return df.to_dict('records')
     else:
@@ -201,12 +229,12 @@ def load_shops_data():
 
 ALL_SHOPS = load_shops_data()
 
-# ================= 3. 主界面排版 =================
+# ================= 4. 主界面排版 =================
 if 'user_profile' not in st.session_state:
     st.session_state.user_profile = {"spice_preference": "未知", "dislikes": [], "favorites": []}
 
-st.markdown('<div class="cute-title">🍲 乌萨奇食堂</div>', unsafe_allow_html=True)
-st.markdown('<div class="cute-subtitle">越用越懂你的 AI 饭搭子</div>', unsafe_allow_html=True)
+st.markdown('<div class="cute-title">🍲 八氏营养套餐</div>', unsafe_allow_html=True)
+st.markdown('<div class="cute-subtitle">小八亲自为你打饭！想吃什么尽管说~</div>', unsafe_allow_html=True)
 
 st.write("### 🐾 你的专属口味卡片")
 col1, col2 = st.columns(2)
@@ -216,19 +244,18 @@ with col2:
     dislikes_str = ', '.join(st.session_state.user_profile['dislikes']) if st.session_state.user_profile['dislikes'] else '无'
     st.metric(label="🚫 坚决不吃", value=dislikes_str)
 st.write("") 
-st.divider()
 
 with st.sidebar:
-    st.image("https://api.dicebear.com/7.x/bottts/svg?seed=Mimi&backgroundColor=FFB6C1", width=150)
+    st.image("https://api.dicebear.com/7.x/bottts/svg?seed=Mimi&backgroundColor=87CEFA", width=150)
     st.header("⚙️ 点餐设置")
     
-    user_address = st.text_input("📍 你的位置：", value="北京市海淀区北京科技大学")
+    user_address = st.text_input("📍 你的位置：", value="北京市天安门")
     user_lat, user_lon = get_location_by_address(user_address, ALL_SHOPS)
     
     if GAODE_KEY != "你的高德KEY填在这里":
         st.success("✅ 魔法雷达已开启")
     
-    max_distance = st.slider("🛵 最远配送距离 (公里)", min_value=0.5, max_value=3.0, value=1.5, step=0.5)
+    max_distance = st.slider("🛵 最远配送距离 (公里)", min_value=0.5, max_value=3.0, value=1.5,step=0.5)
 
 available_shops_text = ""
 for shop in ALL_SHOPS:
@@ -245,7 +272,7 @@ if not available_shops_text:
 with st.expander(f"👀 偷看【{user_address}】附近的菜单"):
     st.text(available_shops_text)
 
-# ================= 4. 聊天与 AI 逻辑 =================
+# ================= 5. 聊天与 AI 逻辑 =================
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
@@ -279,7 +306,7 @@ if user_input:
             
         st.write("🍳 正在翻看菜单...")
         recommend_prompt = f"""
-        你是一个超级懂吃、幽默俏皮、极具网感的大学生饭搭子，说话风格像可爱的吉伊卡哇角色。
+        你是一个超级懂吃、幽默俏皮、极具网感的大学生饭搭子，说话风格像可爱的吉伊卡哇角色小八（哈奇）。
         用户当前位置：【{user_address}】。
         附近可选的【商家及菜单】：
         {available_shops_text}
@@ -288,9 +315,9 @@ if user_input:
         用户现在的需求是：“{user_input}”
         
         ⚠️ 必须严格遵守以下设定：
-        1. 【高分优先，宁缺毋滥】：精挑细选 最多 3 家最符合要求的店。
+        1. 【高分优先，宁缺毋滥】：精挑细选 最多 3 家 最符合要求的店。
         2. 【预算与点菜】：直接从菜单里挑出具体的菜品推荐给TA。
-        3. 【俏皮金句】：模仿吉伊卡哇中角色的语气，多用颜文字和可爱的语气词（如：捏、呀、哦）。
+        3. 【俏皮金句】：模仿吉伊卡哇中角色说话的语气，多用颜文字和可爱的语气词（如：捏、呀、哦）。
         4. 【贴心细节】：顺嘴提一句距离和大概多久送到。如果有忌口，记得邀功。
         """
 
