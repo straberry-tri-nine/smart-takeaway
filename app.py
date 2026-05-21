@@ -6,28 +6,47 @@ import math
 import requests
 import pandas as pd
 import os
-# ================= 0. 🌟 终极 UI 美化魔法 (元气美食主题) =================
+# ================= 0. 🌟 终极 UI 美化魔法 (高级 CSS 注入) =================
 st.set_page_config(page_title="智能外卖助手", page_icon="🍱", layout="centered")
 
-# 注入高级 CSS 样式
 custom_css = """
 <style>
     /* 1. 隐藏原厂水印 */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* 2. 更改整个网页的背景色（温馨的蜜桃暖色渐变，激发食欲！） */
-    .stApp {
-        background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+    /* 2. 全局字体优化：使用更现代、圆润的字体 */
+    html, body, [class*="css"] {
+        font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
     }
     
-    /* 3. 侧边栏背景色改为纯白，增加高级阴影 */
-    [data-testid="stSidebar"] {
-        background-color: #ffffff;
-        box-shadow: 5px 0px 15px rgba(255, 75, 75, 0.1);
+    /* 3. 页面主背景：温柔的蜜桃奶茶色渐变，增加食欲和温暖感 */
+    .stApp {
+        background: linear-gradient(135deg, #FFF5F5 0%, #FFF0E6 100%);
     }
-
-    /* 4. 苹果风渐变色大标题 */
+    
+    /* 4. 侧边栏美化：半透明毛玻璃效果 */
+    [data-testid="stSidebar"] {
+        background-color: rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    /* 5. 数据看板美化：苹果风悬浮玻璃卡片 */
+    [data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 8px 32px rgba(255, 75, 75, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    [data-testid="stMetric"]:hover {
+        transform: translateY(-5px); /* 鼠标放上去会微微浮起 */
+    }
+    
+    /* 6. 苹果风渐变色大标题 */
     .gradient-title {
         background: -webkit-linear-gradient(45deg, #FF4B4B, #FF904B);
         -webkit-background-clip: text;
@@ -36,36 +55,14 @@ custom_css = """
         font-weight: 900;
         text-align: center;
         margin-bottom: 0px;
+        padding-top: 20px;
     }
     .subtitle {
         text-align: center;
-        color: #ff7b7b;
+        color: #FF7A59;
         font-size: 1.2em;
+        font-weight: 500;
         margin-bottom: 30px;
-        font-weight: bold;
-    }
-
-    /* 5. 美化数据卡片 (Metric) - 变身高级的“毛玻璃卡片” */
-    [data-testid="stMetric"] {
-        background-color: rgba(255, 255, 255, 0.7);
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 0 8px 20px rgba(255, 75, 75, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        text-align: center;
-        transition: transform 0.3s ease;
-    }
-    /* 鼠标悬浮在卡片上时会有微微弹起的动画 */
-    [data-testid="stMetric"]:hover {
-        transform: translateY(-5px);
-    }
-    
-    /* 6. 美化聊天输入框，让它看起来更圆润可爱 */
-    [data-testid="stChatInput"] {
-        border-radius: 25px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        border: 1px solid #ffe3e3;
     }
 </style>
 """
